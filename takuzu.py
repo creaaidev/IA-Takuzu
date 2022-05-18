@@ -17,6 +17,7 @@ from search import (
     recursive_best_first_search,
 )
 
+from utils import *
 
 class TakuzuState:
     state_id = 0
@@ -34,23 +35,44 @@ class TakuzuState:
 
 class Board:
     """Representação interna de um tabuleiro de Takuzu."""
+    
+    def __init__(self, size, board):
+        self.size = size
+        self.board = board
+
+    def __str__(self):
+        output = ""
+        #for line in self.board:
+        #    output += ("\t".join(line)+"\n")
+        for row in range(self.size):
+            for col in range(self.size-1):
+                output += str(self.board[row][col])+"\t"
+            output += str(self.board[row][self.size-1])+"\n"
+        return output
 
     def get_number(self, row: int, col: int) -> int:
         """Devolve o valor na respetiva posição do tabuleiro."""
-        # TODO
-        pass
+        return self.board[row-1][col-1]
 
     def adjacent_vertical_numbers(self, row: int, col: int) -> (int, int):
         """Devolve os valores imediatamente abaixo e acima,
         respectivamente."""
-        # TODO
-        pass
+        below, above = -1, -1
+        if row < self.size:
+            below = self.board[row-1][col-1]
+        if row > 0:
+            above = self.board[row-1][col-1]
+        return (below, above)
 
     def adjacent_horizontal_numbers(self, row: int, col: int) -> (int, int):
         """Devolve os valores imediatamente à esquerda e à direita,
         respectivamente."""
-        # TODO
-        pass
+        left, right = -1, -1
+        if col < self.size:
+            right = self.board[row-1][col-1]
+        if col > 0:
+            left = self.board[row-1][col-1]
+        return (left, right)
 
     @staticmethod
     def parse_instance_from_stdin():
@@ -63,8 +85,15 @@ class Board:
             > from sys import stdin
             > stdin.readline()
         """
-        # TODO
-        pass
+        # This can probably be done with just numpy arrays but whatever
+        size = int(sys.stdin.readline().split('\n')[0])
+        board = []
+        for _ in range(size):
+            linha = sys.stdin.readline().replace('\n', '\t').split('\t')[:-1]
+            linha = [int(value) for value in linha]
+            board += [np.array(linha)]
+        board = np.array(board)
+        return Board(size, board)
 
     # TODO: outros metodos da classe
 
@@ -105,9 +134,10 @@ class Takuzu(Problem):
 
 
 if __name__ == "__main__":
-    # TODO:
-    # Ler o ficheiro do standard input,
-    # Usar uma técnica de procura para resolver a instância,
-    # Retirar a solução a partir do nó resultante,
-    # Imprimir para o standard output no formato indicado.
-    pass
+    # DOING:
+    # Ler o ficheiro do standard input, OK
+    # Usar uma técnica de procura para resolver a instância, SOB
+    # Retirar a solução a partir do nó resultante, SOB
+    # Imprimir para o standard output no formato indicado. OK
+    board = Board.parse_instance_from_stdin()
+    print("Initial:\n", board, sep="")
