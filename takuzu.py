@@ -46,8 +46,8 @@ class Board:
         #    output += ("\t".join(line)+"\n")
         for row in range(self.size):
             for col in range(self.size-1):
-                output += str(self.board[row][col])+"\t"
-            output += str(self.board[row][self.size-1])+"\n"
+                output += str(Board.get_number(self, row, col))+"\t"
+            output += str(Board.get_number(self, row, self.size))+"\n"
         return output
 
     def get_number(self, row: int, col: int) -> int:
@@ -59,9 +59,9 @@ class Board:
         respectivamente."""
         below, above = -1, -1
         if row < self.size:
-            below = self.board[row-1][col-1]
+            below = Board.get_number(self, row+1, col)
         if row > 0:
-            above = self.board[row-1][col-1]
+            above = Board.get_number(self, row-1, col)
         return (below, above)
 
     def adjacent_horizontal_numbers(self, row: int, col: int) -> (int, int):
@@ -69,9 +69,9 @@ class Board:
         respectivamente."""
         left, right = -1, -1
         if col < self.size:
-            right = self.board[row-1][col-1]
+            right = Board.get_number(self, row, col+1)
         if col > 0:
-            left = self.board[row-1][col-1]
+            left = Board.get_number(self, row, col-1)
         return (left, right)
 
     @staticmethod
