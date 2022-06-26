@@ -250,13 +250,13 @@ class Board:
         newBoard.rows = newRows
         newBoard.columns = newColumns
 
+        newBoard.horizontalBinaryValues = self.horizontalBinaryValues
         if action.horizontalBinaryValue != None:
             newBoard.horizontalBinaryValues += [action.horizontalBinaryValue]
 
+        newBoard.verticalBinaryValues = self.verticalBinaryValues
         if action.verticalBinaryValue != None:
             newBoard.verticalBinaryValues += [action.verticalBinaryValue]
-
-        # ?? Temos de calcular mais alguma coisa?
 
         return newBoard
 
@@ -334,27 +334,37 @@ class Takuzu(Problem):
                 horizontalBinaryValue = 0
                 verticalBinaryValue = 0
 
+                count = 0
                 # Check the row
                 for x in reversed(range(0, state.board.size)):
-                    if state.board.get_number(x, action.y) == EMPTY:
+                    if state.board.get_number(x, action.y) == EMPTY and x != action.x:
                         horizontalBinaryValue = None
                         break
 
-                    horizontalBinaryValue += action.number * (2 ^ x)
-
+                    if x == action.x:
+                        horizontalBinaryValue += action.number * (2 ** count)
+                    else:
+                        horizontalBinaryValue += state.board.get_number(x,action.y) * (2 ** count)
+                    count += 1
+                
                 if horizontalBinaryValue != None and horizontalBinaryValue in state.board.horizontalBinaryValues:
                     addAction = False
                 else:
                     action.horizontalBinaryValue = horizontalBinaryValue
-
+                
+                count = 0
                 # Check the column
                 if addAction:
                     for y in reversed(range(0, state.board.size)):
-                        if state.board.get_number(action.x, y) == EMPTY:
+                        if state.board.get_number(action.x, y) == EMPTY and y != action.y:
                             verticalBinaryValue = None
                             break
-
-                        verticalBinaryValue += action.number * (2 ^ y)
+                        
+                        if y == action.y:
+                            verticalBinaryValue += action.number * (2 ** count)
+                        else:
+                            verticalBinaryValue += state.board.get_number(action.x,y) * (2 ** count)
+                        count += 1
 
                     if verticalBinaryValue != None and verticalBinaryValue in state.board.verticalBinaryValues:
                         addAction = False
@@ -368,7 +378,6 @@ class Takuzu(Problem):
             return actionsResult
 
         # Get obligatory play derived from the 50/50 rule
-        # print("Play Found in #1")
         for i in range(0, state.board.size):  # Row by row. i is row and j is column
             num = state.board.rows[i].getObligatoryPlay()
 
@@ -377,11 +386,11 @@ class Takuzu(Problem):
             if num != None:  # If an obligatory play is found
                 for j in range(state.board.size):  # Find an empty spot in the row
                     if state.board.get_number(j, i) == EMPTY:
+                        # print("Play Found in #1")
                         # And return the correct action
                         return finishActionLookup([self.Action(j, i, num)])
 
         # Column by column. i is column and j is row
-        # print("Play Found in #2")
         for i in range(state.board.size):
             num = state.board.columns[i].getObligatoryPlay()
 
@@ -390,6 +399,7 @@ class Takuzu(Problem):
             if num != None:  # If an obligatory play is found
                 for j in range(state.board.size):  # Find an empty spot in the column
                     if state.board.get_number(i, j) == EMPTY:
+                        # print("Play Found in #2")
                         # And return the correct action
                         return finishActionLookup([self.Action(i, j, num)])
 
@@ -438,7 +448,6 @@ class Takuzu(Problem):
             return None
 
         # Look in all empty positions for a obligatory play to make
-        # print("Play Found in #3")
         for position in state.board.emptyPositions:
             obligatoryPlay = getObligatoryPlayForPosition(
                 position[0], position[1])
@@ -446,6 +455,7 @@ class Takuzu(Problem):
             if obligatoryPlay == IMPOSSIBLE:
                 return []
             if obligatoryPlay != None:
+                # print("Play Found in #3")
                 return finishActionLookup([self.Action(position[0],
                                                        position[1], obligatoryPlay)])
 
