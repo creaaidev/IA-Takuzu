@@ -24,6 +24,7 @@ ONE = 1
 EMPTY = 2
 IMPOSSIBLE = -1
 
+
 class TakuzuState:
     state_id = 0
 
@@ -38,10 +39,11 @@ class TakuzuState:
 
 class Board:
     """Representação interna de um tabuleiro de Takuzu."""
+
     def __init__(self, size, board):
         self.size = size
         self.board = board
-        
+
         self.emptyPositions = []
 
         self.rows = []
@@ -49,7 +51,7 @@ class Board:
 
         self.horizontalBinaryValues = []
         self.verticalBinaryValues = []
-    
+
     def __str__(self):
         output = ""
         # for line in self.board:
@@ -57,9 +59,10 @@ class Board:
         for y in range(self.size):
             for x in range(self.size-1):
                 output += str(Board.get_number(self, x, y))+"\t"
-            output += str(Board.get_number(self, self.size-1, y))+"\n"
+            output += str(Board.get_number(self, self.size-1, y))
+            if y != self.size-1:
+                output += "\n"
         return output
-
 
     class BoardLine:  # Columns and Rows of a Board
         def __init__(self, maxCount, counterZero, counterOne):
@@ -91,7 +94,7 @@ class Board:
 
         for i in range(self.size):  # Columns
             self.columns += [self.BoardLine(
-                np.floor(self.size / 2), self.board[i].count(ZERO), self.board[i].count(ONE))]
+                np.ceil(self.size / 2), self.board[i].count(ZERO), self.board[i].count(ONE))]
 
         # Binary value calculation for all columns
         for i in range(0, self.size):
@@ -116,7 +119,7 @@ class Board:
                 rowToList += [self.board[j][i]]
 
             self.rows += [self.BoardLine(
-                    np.floor(self.size / 2), rowToList.count(ZERO), rowToList.count(ONE))]
+                np.ceil(self.size / 2), rowToList.count(ZERO), rowToList.count(ONE))]
 
         # Binary value calculation for all rows
         for j in range(0, self.size):
@@ -179,7 +182,7 @@ class Board:
         respectivamente."""
         leftFar, left, right, rightFar = None, None, None, None
         if x < self.size - 1:
-            right = Board.get_number(self, x+2, y)
+            right = Board.get_number(self, x+1, y)
         if x < self.size - 2:
             rightFar = Board.get_number(self, x+2, y)
 
@@ -194,7 +197,7 @@ class Board:
         positions = []
         for x in range(self.size):
             for y in range(self.size):
-                if self.get_number(x,y) == EMPTY:
+                if self.get_number(x, y) == EMPTY:
                     positions += [(x, y)]
         return positions
 
@@ -202,7 +205,7 @@ class Board:
         newBoard = [[] for _ in range(self.size)]
         for x in range(self.size):
             for y in range(self.size):
-                newBoard[x] += [self.get_number(x,y)]
+                newBoard[x] += [self.get_number(x, y)]
         return newBoard
 
     def play(self, action):
@@ -214,35 +217,35 @@ class Board:
         emptyPositions = []
         for position in self.emptyPositions:
             if position != (action.x, action.y):
-                emptyPositions += [(action.x, action.y)]
+                emptyPositions += [(position[0], position[1])]
 
         newBoard = Board(self.size, temp)
         newBoard.emptyPositions = emptyPositions
-        
+
         newRows, newColumns = [], []
         for row in range(self.size):
             if row != action.y:
-                newRows += [newBoard.BoardLine(np.floor(newBoard.size / 2), 
-                    self.rows[row].counter[ZERO], self.rows[row].counter[ONE])]
+                newRows += [newBoard.BoardLine(np.ceil(newBoard.size / 2),
+                                               self.rows[row].counter[ZERO], self.rows[row].counter[ONE])]
             else:
                 if action.number == ZERO:
-                    newRows += [newBoard.BoardLine(np.floor(newBoard.size / 2), 
-                        self.rows[row].counter[ZERO] + 1, self.rows[row].counter[ONE])]
+                    newRows += [newBoard.BoardLine(np.ceil(newBoard.size / 2),
+                                                   self.rows[row].counter[ZERO] + 1, self.rows[row].counter[ONE])]
                 else:
-                    newRows += [newBoard.BoardLine(np.floor(newBoard.size / 2),
-                            self.rows[row].counter[ZERO], self.rows[row].counter[ONE]+1)]
+                    newRows += [newBoard.BoardLine(np.ceil(newBoard.size / 2),
+                                                   self.rows[row].counter[ZERO], self.rows[row].counter[ONE]+1)]
 
         for column in range(self.size):
             if column != action.x:
-                newColumns += [newBoard.BoardLine(np.floor(newBoard.size / 2), 
-                    self.columns[column].counter[ZERO], self.columns[column].counter[ONE])]
+                newColumns += [newBoard.BoardLine(np.ceil(newBoard.size / 2),
+                                                  self.columns[column].counter[ZERO], self.columns[column].counter[ONE])]
             else:
                 if action.number == ZERO:
-                    newColumns += [newBoard.BoardLine(np.floor(newBoard.size / 2), 
-                        self.columns[column].counter[ZERO] + 1, self.columns[column].counter[ONE])]
+                    newColumns += [newBoard.BoardLine(np.ceil(newBoard.size / 2),
+                                                      self.columns[column].counter[ZERO] + 1, self.columns[column].counter[ONE])]
                 else:
-                    newColumns += [newBoard.BoardLine(np.floor(newBoard.size / 2),
-                        self.columns[column].counter[ZERO], self.columns[column].counter[ONE] + 1)]
+                    newColumns += [newBoard.BoardLine(np.ceil(newBoard.size / 2),
+                                                      self.columns[column].counter[ZERO], self.columns[column].counter[ONE] + 1)]
 
         newBoard.rows = newRows
         newBoard.columns = newColumns
@@ -252,11 +255,11 @@ class Board:
 
         if action.verticalBinaryValue != None:
             newBoard.verticalBinaryValues += [action.verticalBinaryValue]
-        
+
         # ?? Temos de calcular mais alguma coisa?
 
         return newBoard
- 
+
     @staticmethod
     def parse_instance_from_stdin():
         """Lê o test do standard input (stdin) que é passado como argumento
@@ -271,13 +274,14 @@ class Board:
         size = int(sys.stdin.readline().split('\n')[0])
         board = [[] for _ in range(size)]
         for _ in range(size):
-            line = sys.stdin.readline().replace('\n', '\t').split('\t')[:-1]  # Parse the line into a list of separate strings
+            line = sys.stdin.readline().replace('\n', '\t').split(
+                '\t')[:-1]  # Parse the line into a list of separate strings
             for i in range(size):
                 board[i] += [int(line[i])]
         newBoard = Board(size, board)
         newBoard.emptyPositions = newBoard.get_emptyPositions()
         newBoard.calculateAuxiliaryStats()
-        
+
         return newBoard
 
 
@@ -364,6 +368,7 @@ class Takuzu(Problem):
             return actionsResult
 
         # Get obligatory play derived from the 50/50 rule
+        # print("Play Found in #1")
         for i in range(0, state.board.size):  # Row by row. i is row and j is column
             num = state.board.rows[i].getObligatoryPlay()
 
@@ -371,11 +376,12 @@ class Takuzu(Problem):
                 return []
             if num != None:  # If an obligatory play is found
                 for j in range(state.board.size):  # Find an empty spot in the row
-                    if state.board.get_number(j,i) == EMPTY:
+                    if state.board.get_number(j, i) == EMPTY:
                         # And return the correct action
                         return finishActionLookup([self.Action(j, i, num)])
 
         # Column by column. i is column and j is row
+        # print("Play Found in #2")
         for i in range(state.board.size):
             num = state.board.columns[i].getObligatoryPlay()
 
@@ -383,10 +389,10 @@ class Takuzu(Problem):
                 return []
             if num != None:  # If an obligatory play is found
                 for j in range(state.board.size):  # Find an empty spot in the column
-                    if state.board.get_number(i,j) == EMPTY:
+                    if state.board.get_number(i, j) == EMPTY:
                         # And return the correct action
                         return finishActionLookup([self.Action(i, j, num)])
-        
+
         # Returns the obligatory play for an empty position, considering the nearest 4 positions
         def playDict(numberRow):
             opposite = (ONE, ZERO)
@@ -396,27 +402,27 @@ class Takuzu(Problem):
                 left = numberRow[1]
             if numberRow[3] == numberRow[2]:
                 right = numberRow[2]
-            if left == right:
+            if numberRow[1] == numberRow[2]:
                 middle = numberRow[1]
 
             # Left, Right and Middle should be understood as: XX__ = LEFT, __XX = RIGHT, _XX_ = MIDDLE
             if left in opposite:
                 if right in opposite:
                     if left == right:
-                        return opposite[left] # 11[]11 -> 11[0]11
+                        return opposite[left]  # 11[]11 -> 11[0]11
                     return IMPOSSIBLE   # 11[error]00
                 return opposite[left]   # 11[0]__ / etc
             if right in opposite:
                 return opposite[right]  # __[1]00 / etc
             if middle in opposite:
-                return opposite[middle] # _1[0]1_
+                return opposite[middle]  # _1[0]1_
             return None
 
         # Returns an obligatory number to play for a specific position if there is one, else returns None
-        def getObligatoryPlayForPosition(x, y): 
-
+        def getObligatoryPlayForPosition(x, y):
             # Horizontal
-            horizontalNums = state.board.adjacent_horizontal_numbers_expanded(x, y)
+            horizontalNums = state.board.adjacent_horizontal_numbers_expanded(
+                x, y)
 
             correctPlay = playDict(horizontalNums)
             if correctPlay != None:  # If there is a play that should be made, return it
@@ -432,20 +438,23 @@ class Takuzu(Problem):
             return None
 
         # Look in all empty positions for a obligatory play to make
+        # print("Play Found in #3")
         for position in state.board.emptyPositions:
-            obligatoryPlay = getObligatoryPlayForPosition(position[0], position[1])
-            
+            obligatoryPlay = getObligatoryPlayForPosition(
+                position[0], position[1])
+
             if obligatoryPlay == IMPOSSIBLE:
                 return []
             if obligatoryPlay != None:
                 return finishActionLookup([self.Action(position[0],
-                    position[1], obligatoryPlay)])
-        
+                                                       position[1], obligatoryPlay)])
+
         # Since no obligatory play was found, return two actions for the first empty position
 
         position = state.board.emptyPositions[0]
-        return finishActionLookup([self.Action(position[0], position[1], 0), 
-            self.Action(position[0], position[1], 1)])         
+        # print("Play Found in #4")
+        return finishActionLookup([self.Action(position[0], position[1], 0),
+                                   self.Action(position[0], position[1], 1)])
 
     def result(self, state: TakuzuState, action):
         """Retorna o estado resultante de executar a 'action' sobre
@@ -455,7 +464,7 @@ class Takuzu(Problem):
 
         newBoard = state.board.play(action)
 
-        print("Played: (" + str(action.x) + "," + str(action.y) + ")\n", newBoard, sep="")
+        # print("Played: (" + str(action.x) + "," + str(action.y) + ")\n", newBoard, sep="")
 
         return TakuzuState(newBoard)
 
@@ -484,11 +493,11 @@ if __name__ == "__main__":
     # Retirar a solução a partir do nó resultante, SOB
     # Imprimir para o standard output no formato indicado. OK
     board = Board.parse_instance_from_stdin()
-    print("Initial:\n", board, sep="")
+    # print("Initial:\n", board, sep="")
 
     problem = Takuzu(board)
-    
+
     goal_node = depth_first_tree_search(problem)
-    
-    print("Is goal?", problem.goal_test(goal_node.state))
-    print("Solution:\n", goal_node.state.board, sep="")
+
+    # print("Is goal?", problem.goal_test(goal_node.state))
+    print(goal_node.state.board, sep="")
