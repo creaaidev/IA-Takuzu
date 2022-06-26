@@ -2,9 +2,9 @@
 # Devem alterar as classes e funções neste ficheiro de acordo com as instruções do enunciado.
 # Além das funções e classes já definidas, podem acrescentar outras que considerem pertinentes.
 
-# Grupo 00:
-# 00000 Nome1
-# 00000 Nome2
+# Grupo 42:
+# 99302 Pedro Ribeiro
+# 99281 Martim Monis
 
 import sys
 from search import (
@@ -250,11 +250,13 @@ class Board:
         newBoard.rows = newRows
         newBoard.columns = newColumns
 
-        newBoard.horizontalBinaryValues = self.horizontalBinaryValues
+        for value in self.horizontalBinaryValues:
+            newBoard.horizontalBinaryValues += [value]
         if action.horizontalBinaryValue != None:
             newBoard.horizontalBinaryValues += [action.horizontalBinaryValue]
 
-        newBoard.verticalBinaryValues = self.verticalBinaryValues
+        for value in self.verticalBinaryValues:
+            newBoard.verticalBinaryValues += [value]
         if action.verticalBinaryValue != None:
             newBoard.verticalBinaryValues += [action.verticalBinaryValue]
 
@@ -317,6 +319,31 @@ class Takuzu(Problem):
             If no obligatory one is found, a big list  of all possible actions is 
             generated as said above.
         """
+        # Returns the obligatory play for an empty position, considering the nearest 4 positions
+        def playDict(numberRow):
+            opposite = (ONE, ZERO)
+
+            left, middle, right = EMPTY, EMPTY, EMPTY
+            if numberRow[0] == numberRow[1]:
+                left = numberRow[1]
+            if numberRow[3] == numberRow[2]:
+                right = numberRow[2]
+            if numberRow[1] == numberRow[2]:
+                middle = numberRow[1]
+
+            # Left, Right and Middle should be understood as: XX__ = LEFT, __XX = RIGHT, _XX_ = MIDDLE
+            if left in opposite:
+                if right in opposite:
+                    if left == right:
+                        return opposite[left]  # 11[]11 -> 11[0]11
+                    return IMPOSSIBLE   # 11[error]00
+                return opposite[left]   # 11[0]__ / etc
+            if right in opposite:
+                return opposite[right]  # __[1]00 / etc
+            if middle in opposite:
+                return opposite[middle]  # _1[0]1_
+            return None
+
         # Looks through all actions given to it and returns all that don't break any rules
         def finishActionLookup(actions):
             actionsResult = []
@@ -324,9 +351,20 @@ class Takuzu(Problem):
             # If an impossible obligatory action was found, then return a null list
             if actions[0].number == IMPOSSIBLE:
                 return []
+            
+            actionsPossible = []
+            for action in actions:
+                horiz = playDict(state.board.adjacent_horizontal_numbers_expanded(
+                    action.x, action.y))
+                vert = playDict(state.board.adjacent_vertical_numbers_expanded(
+                    action.x, action.y))
+                
+                if (horiz == 2 or horiz == None) or horiz == action.number:
+                    if (vert == 2 or vert == None) or vert == action.number:
+                        actionsPossible += [action]
 
             # Check if an action will complete a row or a column. If it will, and the row or column is repeated, then rule out the action
-            for action in actions:
+            for action in actionsPossible:
                 # Whether or not the action should be added
                 addAction = True
 
@@ -403,30 +441,6 @@ class Takuzu(Problem):
                         # And return the correct action
                         return finishActionLookup([self.Action(i, j, num)])
 
-        # Returns the obligatory play for an empty position, considering the nearest 4 positions
-        def playDict(numberRow):
-            opposite = (ONE, ZERO)
-
-            left, middle, right = EMPTY, EMPTY, EMPTY
-            if numberRow[0] == numberRow[1]:
-                left = numberRow[1]
-            if numberRow[3] == numberRow[2]:
-                right = numberRow[2]
-            if numberRow[1] == numberRow[2]:
-                middle = numberRow[1]
-
-            # Left, Right and Middle should be understood as: XX__ = LEFT, __XX = RIGHT, _XX_ = MIDDLE
-            if left in opposite:
-                if right in opposite:
-                    if left == right:
-                        return opposite[left]  # 11[]11 -> 11[0]11
-                    return IMPOSSIBLE   # 11[error]00
-                return opposite[left]   # 11[0]__ / etc
-            if right in opposite:
-                return opposite[right]  # __[1]00 / etc
-            if middle in opposite:
-                return opposite[middle]  # _1[0]1_
-            return None
 
         # Returns an obligatory number to play for a specific position if there is one, else returns None
         def getObligatoryPlayForPosition(x, y):
@@ -493,7 +507,6 @@ class Takuzu(Problem):
         # TODO
         pass
 
-    # TODO: outros metodos da classe
 
 
 if __name__ == "__main__":
