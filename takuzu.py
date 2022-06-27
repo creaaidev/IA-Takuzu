@@ -9,6 +9,7 @@
 import sys
 from search import (
     Problem,
+    InstrumentedProblem,
     Node,
     astar_search,
     breadth_first_tree_search,
@@ -23,7 +24,6 @@ ZERO = 0
 ONE = 1
 EMPTY = 2
 IMPOSSIBLE = -1
-
 
 class TakuzuState:
     state_id = 0
@@ -504,23 +504,17 @@ class Takuzu(Problem):
 
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
-        # TODO
-        pass
-
+        return len(node.state.board.emptyPositions)
 
 
 if __name__ == "__main__":
-    # DOING:
-    # Ler o ficheiro do standard input, OK
-    # Usar uma técnica de procura para resolver a instância, SOB
-    # Retirar a solução a partir do nó resultante, SOB
-    # Imprimir para o standard output no formato indicado. OK
     board = Board.parse_instance_from_stdin()
-    # print("Initial:\n", board, sep="")
 
-    problem = Takuzu(board)
+    problem = InstrumentedProblem(Takuzu(board))
 
-    goal_node = depth_first_tree_search(problem)
+    goal_node = greedy_search(problem)
 
     # print("Is goal?", problem.goal_test(goal_node.state))
+    print("Gerados: " + str(problem.states))
+    print("Expandidos " + str(problem.succs))
     print(goal_node.state.board, sep="")
