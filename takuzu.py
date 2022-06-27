@@ -25,6 +25,7 @@ ONE = 1
 EMPTY = 2
 IMPOSSIBLE = -1
 
+
 class TakuzuState:
     state_id = 0
 
@@ -86,8 +87,6 @@ class Board:
                 return ZERO
 
             return None  # Neither limit is reached and there is no obligatory play
-
-#    def calculateBinaryNumber(numberRow):
 
     def calculateAuxiliaryStats(self):
         # Initiate all of the board lines with the correct number of zeros and ones
@@ -287,11 +286,6 @@ class Board:
         return newBoard
 
 
-"""
-
-"""
-
-
 class Takuzu(Problem):
     def __init__(self, board: Board):
         """O construtor especifica o estado inicial."""
@@ -351,16 +345,17 @@ class Takuzu(Problem):
             # If an impossible obligatory action was found, then return a null list
             if actions[0].number == IMPOSSIBLE:
                 return []
-            
+
             actionsPossible = []
+            # Run through all actions and check if they are possible
             for action in actions:
                 horiz = playDict(state.board.adjacent_horizontal_numbers_expanded(
                     action.x, action.y))
                 vert = playDict(state.board.adjacent_vertical_numbers_expanded(
                     action.x, action.y))
-                
-                if (horiz == 2 or horiz == None) or horiz == action.number:
-                    if (vert == 2 or vert == None) or vert == action.number:
+
+                if horiz == EMPTY or horiz == None or horiz == action.number:
+                    if vert == EMPTY or vert == None or vert == action.number:
                         actionsPossible += [action]
 
             # Check if an action will complete a row or a column. If it will, and the row or column is repeated, then rule out the action
@@ -382,14 +377,15 @@ class Takuzu(Problem):
                     if x == action.x:
                         horizontalBinaryValue += action.number * (2 ** count)
                     else:
-                        horizontalBinaryValue += state.board.get_number(x,action.y) * (2 ** count)
+                        horizontalBinaryValue += state.board.get_number(
+                            x, action.y) * (2 ** count)
                     count += 1
-                
+
                 if horizontalBinaryValue != None and horizontalBinaryValue in state.board.horizontalBinaryValues:
                     addAction = False
                 else:
                     action.horizontalBinaryValue = horizontalBinaryValue
-                
+
                 count = 0
                 # Check the column
                 if addAction:
@@ -397,11 +393,12 @@ class Takuzu(Problem):
                         if state.board.get_number(action.x, y) == EMPTY and y != action.y:
                             verticalBinaryValue = None
                             break
-                        
+
                         if y == action.y:
                             verticalBinaryValue += action.number * (2 ** count)
                         else:
-                            verticalBinaryValue += state.board.get_number(action.x,y) * (2 ** count)
+                            verticalBinaryValue += state.board.get_number(
+                                action.x, y) * (2 ** count)
                         count += 1
 
                     if verticalBinaryValue != None and verticalBinaryValue in state.board.verticalBinaryValues:
@@ -424,7 +421,6 @@ class Takuzu(Problem):
             if num != None:  # If an obligatory play is found
                 for j in range(state.board.size):  # Find an empty spot in the row
                     if state.board.get_number(j, i) == EMPTY:
-                        # print("Play Found in #1")
                         # And return the correct action
                         return finishActionLookup([self.Action(j, i, num)])
 
@@ -437,12 +433,11 @@ class Takuzu(Problem):
             if num != None:  # If an obligatory play is found
                 for j in range(state.board.size):  # Find an empty spot in the column
                     if state.board.get_number(i, j) == EMPTY:
-                        # print("Play Found in #2")
                         # And return the correct action
                         return finishActionLookup([self.Action(i, j, num)])
 
-
         # Returns an obligatory number to play for a specific position if there is one, else returns None
+
         def getObligatoryPlayForPosition(x, y):
             # Horizontal
             horizontalNums = state.board.adjacent_horizontal_numbers_expanded(
@@ -469,16 +464,21 @@ class Takuzu(Problem):
             if obligatoryPlay == IMPOSSIBLE:
                 return []
             if obligatoryPlay != None:
-                # print("Play Found in #3")
                 return finishActionLookup([self.Action(position[0],
                                                        position[1], obligatoryPlay)])
 
         # Since no obligatory play was found, return two actions for the first empty position
+        #position = state.board.emptyPositions[0]
+        # return finishActionLookup([self.Action(position[0], position[1], 0),
+        #                           self.Action(position[0], position[1], 1)])
 
-        position = state.board.emptyPositions[0]
-        # print("Play Found in #4")
-        return finishActionLookup([self.Action(position[0], position[1], 0),
-                                   self.Action(position[0], position[1], 1)])
+        # Return all actions that are possible
+        possibleActions = []
+        for position in state.board.emptyPositions:
+            possibleActions += [self.Action(position[0], position[1], 0)]
+            possibleActions += [self.Action(position[0], position[1], 1)]
+
+        return finishActionLookup(possibleActions)
 
     def result(self, state: TakuzuState, action):
         """Retorna o estado resultante de executar a 'action' sobre
@@ -515,6 +515,6 @@ if __name__ == "__main__":
     goal_node = greedy_search(problem)
 
     # print("Is goal?", problem.goal_test(goal_node.state))
-    print("Gerados: " + str(problem.states))
-    print("Expandidos " + str(problem.succs))
+    # print("Gerados: " + str(problem.states))
+    # print("Expandidos " + str(problem.succs))
     print(goal_node.state.board, sep="")
